@@ -137,9 +137,9 @@ namespace motor {
     function initPCA9685(): void {
         i2cWrite(PCA9685_ADDRESS, MODE1, 0x00)
         // setFreq(50);
-		//setFreq(1000); //for test 1kHz
 		//setFreq(100); //for test 100Hz
-		setFreq(500); //for test 500Hz
+		//setFreq(500); //for test 500Hz
+		setFreq(1000); //for test 1kHz
 		
         initialized = true
     }
