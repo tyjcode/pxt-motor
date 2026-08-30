@@ -260,7 +260,7 @@ namespace motor {
     //% speed.min=0 speed.max=255
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2
     //% direction.fieldEditor="gridpicker" direction.fieldOptions.columns=2
-    export function MotorRun(index: Motors, direction: Dir, speed: number): void {
+    export function MotorRun2(index: Motors, direction: Dir, speed: number): void {
         if (!initialized) {
             initPCA9685()
         }
@@ -283,7 +283,69 @@ namespace motor {
             setPwm(pn, 0, -speed)
         }
     }
+export function MotorRun(index: Motors, direction: Dir, speed: number): void {
+    if (!initialized) {
+        initPCA9685()
+    }
 
+    // speed: 0 ～ 255
+    if (speed < 0) {
+        speed = 0
+    }
+    if (speed > 255) {
+        speed = 255
+    }
+
+    if (index > 4 || index <= 0) {
+        return
+    }
+
+    let pn = (4 - index) * 2
+    let pp = (4 - index) * 2 + 1
+
+    // 0～255 → 0～4080
+    let pwm = speed * 16
+
+    // speed = 0 は完全停止
+    if (speed == 0) {
+        setPwm(pp, 0, 4096)
+        setPwm(pn, 0, 4096)
+        return
+    }
+
+    // Slow Decayでは
+    // OFF期間を H-H（Brake）にするためPWMを反転する
+    let brakePwm = 4096 - pwm
+
+    if (direction == Dir.CW) {
+
+        // Forward Slow Decay
+        //
+        // pp = HIGH固定
+        // pn = PWM
+        //
+        // pp  pn
+        // H   L  → Forward
+        // H   H  → Brake (Slow Decay)
+
+        setPwm(pp, 4096, 0)       // Full ON
+        setPwm(pn, 0, brakePwm)
+
+    } else {
+
+        // Reverse Slow Decay
+        //
+        // pp = PWM
+        // pn = HIGH固定
+        //
+        // pp  pn
+        // L   H  → Reverse
+        // H   H  → Brake (Slow Decay)
+
+        setPwm(pp, 0, brakePwm)
+        setPwm(pn, 4096, 0)       // Full ON
+    }
+}
     /**
 	 * Execute a 42BYGH1861A-C step motor(Degree).
      * M1_M2/M3_M4.
