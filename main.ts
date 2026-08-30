@@ -11,6 +11,9 @@
  * @author [email](1035868977@qq.com)
  * @version  V1.0.1
  * @date  2018-03-20
+ *
+ * Slow Decay & 500Hz
+ * date  2026-08-30
  */
 
 /**
@@ -136,9 +139,9 @@ namespace motor {
 
     function initPCA9685(): void {
         i2cWrite(PCA9685_ADDRESS, MODE1, 0x00)
-        setFreq(50);
+        //setFreq(50);
 		//setFreq(100); //for test 100Hz
-		//setFreq(500); //for test 500Hz
+		setFreq(500); //for test 500Hz
 		//setFreq(1000); //for test 1kHz
 		
         initialized = true
@@ -173,7 +176,7 @@ namespace motor {
         pins.i2cWriteBuffer(PCA9685_ADDRESS, buf);
     }
 
-
+/*
     function setStepper_28(index: number, dir: boolean): void {
         if (index == 1) {
             if (dir) {
@@ -230,7 +233,7 @@ namespace motor {
             }
         }
     }
-
+*/
 
     /**
 	 * Steering gear control function.
@@ -241,6 +244,7 @@ namespace motor {
     //% weight=100
     //% degree.min=0 degree.max=180
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=4
+/*
     export function servo(index: Servos, degree: number): void {
         if (!initialized) {
             initPCA9685()
@@ -250,7 +254,7 @@ namespace motor {
         let value = v_us * 4096 / 20000
         setPwm(index + 7, 0, value)
     }
-
+*/
     /**
 	 * Execute a motor
      * M1~M4.
@@ -261,6 +265,70 @@ namespace motor {
     //% speed.min=0 speed.max=255
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2
     //% direction.fieldEditor="gridpicker" direction.fieldOptions.columns=2
+	export function MotorRun(index: Motors, direction: Dir, speed: number): void {
+	    if (!initialized) {
+	        initPCA9685()
+	    }
+	
+	    // speed: 0 ～ 255
+	    if (speed < 0) {
+	        speed = 0
+	    }
+	    if (speed > 255) {
+	        speed = 255
+	    }
+	
+	    if (index > 4 || index <= 0) {
+	        return
+	    }
+	
+	    let pn = (4 - index) * 2
+	    let pp = (4 - index) * 2 + 1
+	
+	    // 0～255 → 0～4080
+	    let pwm = speed * 16
+	
+	    // speed = 0 は完全停止
+	    if (speed == 0) {
+	        setPwm(pp, 0, 4096)
+	        setPwm(pn, 0, 4096)
+	        return
+	    }
+	
+	    // Slow Decayでは
+	    // OFF期間を H-H（Brake）にするためPWMを反転する
+	    let brakePwm = 4096 - pwm
+	
+	    if (direction == Dir.CW) {
+	
+	        // Forward Slow Decay
+	        //
+	        // pp = HIGH固定
+	        // pn = PWM
+	        //
+	        // pp  pn
+	        // H   L  → Forward
+	        // H   H  → Brake (Slow Decay)
+	
+	        setPwm(pp, 4096, 0)       // Full ON
+	        setPwm(pn, 0, brakePwm)
+	
+	    } else {
+	
+	        // Reverse Slow Decay
+	        //
+	        // pp = PWM
+	        // pn = HIGH固定
+	        //
+	        // pp  pn
+	        // L   H  → Reverse
+	        // H   H  → Brake (Slow Decay)
+	
+	        setPwm(pp, 0, brakePwm)
+	        setPwm(pn, 4096, 0)       // Full ON
+	    }
+	}
+	/*
     export function MotorRun2(index: Motors, direction: Dir, speed: number): void {
         if (!initialized) {
             initPCA9685()
@@ -284,70 +352,9 @@ namespace motor {
             setPwm(pn, 0, -speed)
         }
     }
-export function MotorRun(index: Motors, direction: Dir, speed: number): void {
-    if (!initialized) {
-        initPCA9685()
-    }
+	*/
 
-    // speed: 0 ～ 255
-    if (speed < 0) {
-        speed = 0
-    }
-    if (speed > 255) {
-        speed = 255
-    }
-
-    if (index > 4 || index <= 0) {
-        return
-    }
-
-    let pn = (4 - index) * 2
-    let pp = (4 - index) * 2 + 1
-
-    // 0～255 → 0～4080
-    let pwm = speed * 16
-
-    // speed = 0 は完全停止
-    if (speed == 0) {
-        setPwm(pp, 0, 4096)
-        setPwm(pn, 0, 4096)
-        return
-    }
-
-    // Slow Decayでは
-    // OFF期間を H-H（Brake）にするためPWMを反転する
-    let brakePwm = 4096 - pwm
-
-    if (direction == Dir.CW) {
-
-        // Forward Slow Decay
-        //
-        // pp = HIGH固定
-        // pn = PWM
-        //
-        // pp  pn
-        // H   L  → Forward
-        // H   H  → Brake (Slow Decay)
-
-        setPwm(pp, 4096, 0)       // Full ON
-        setPwm(pn, 0, brakePwm)
-
-    } else {
-
-        // Reverse Slow Decay
-        //
-        // pp = PWM
-        // pn = HIGH固定
-        //
-        // pp  pn
-        // L   H  → Reverse
-        // H   H  → Brake (Slow Decay)
-
-        setPwm(pp, 0, brakePwm)
-        setPwm(pn, 4096, 0)       // Full ON
-    }
-}
-    /**
+	/**
 	 * Execute a 42BYGH1861A-C step motor(Degree).
      * M1_M2/M3_M4.
     */
@@ -355,6 +362,7 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
     //% blockId=motor_stepperDegree_42 block="Stepper 42|%index|dir|%direction|degree|%degree"
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2
     //% direction.fieldEditor="gridpicker" direction.fieldOptions.columns=2
+/*
     export function stepperDegree_42(index: Steppers, direction: Dir, degree: number): void {
         if (!initialized) {
             initPCA9685()
@@ -377,7 +385,7 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
         }
         //setFreq(50);
     }
-
+*/
     /**
 	 * Execute a 42BYGH1861A-C step motor(Turn).
      * M1_M2/M3_M4.
@@ -386,6 +394,7 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
     //% blockId=motor_stepperTurn_42 block="Stepper 42|%index|dir|%direction|turn|%turn"
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2
     //% direction.fieldEditor="gridpicker" direction.fieldOptions.columns=2
+/*
     export function stepperTurn_42(index: Steppers, direction: Dir, turn: number): void {
         if (turn == 0) {
             return;
@@ -393,7 +402,7 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
         let degree = turn * 360;
         stepperDegree_42(index, direction, degree);
     }
-
+*/
     /**
 	 * Execute a 28BYJ-48 step motor(Degree).
      * M1_M2/M3_M4.
@@ -402,7 +411,8 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
     //% blockId=motor_stepperDegree_28 block="Stepper 28|%index|dir|%direction|degree|%degree"
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2
     //% direction.fieldEditor="gridpicker" direction.fieldOptions.columns=2
-    export function stepperDegree_28(index: Steppers, direction: Dir, degree: number): void {
+/*
+	export function stepperDegree_28(index: Steppers, direction: Dir, degree: number): void {
         if (!initialized) {
             initPCA9685()
         }
@@ -424,7 +434,8 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
         }
         //setFreq(50);
     }
-
+*/
+	
     /**
 	 * Execute a 28BYJ-48 step motor(Turn).
      * M1_M2/M3_M4.
@@ -433,6 +444,7 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
     //% blockId=motor_stepperTurn_28 block="Stepper 28|%index|dir|%direction|turn|%turn"
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2
     //% direction.fieldEditor="gridpicker" direction.fieldOptions.columns=2
+/*
     export function stepperTurn_28(index: Steppers, direction: Dir, turn: number): void {
         if (turn == 0) {
             return;
@@ -440,7 +452,8 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
         let degree = turn * 360;
         stepperDegree_28(index, direction, degree);
     }
-
+*/
+	
     /**
 	 * Two parallel stepper motors are executed simultaneously(DegreeDual).
     */
@@ -449,6 +462,7 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
     //% stepper.fieldEditor="gridpicker" stepper.fieldOptions.columns=2
     //% direction1.fieldEditor="gridpicker" direction1.fieldOptions.columns=2
     //% direction2.fieldEditor="gridpicker" direction2.fieldOptions.columns=2
+/*
     export function stepperDegreeDual_42(stepper: Stepper, direction1: Dir, degree1: number, direction2: Dir, degree2: number): void {
         if (!initialized) {
             initPCA9685()
@@ -532,7 +546,7 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
             //
         }
     }
-
+*/
     /**
 	 * Two parallel stepper motors are executed simultaneously(Turn).
     */
@@ -541,6 +555,7 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
     //% stepper.fieldEditor="gridpicker" stepper.fieldOptions.columns=2
     //% direction1.fieldEditor="gridpicker" direction1.fieldOptions.columns=2
     //% direction2.fieldEditor="gridpicker" direction2.fieldOptions.columns=2
+/*
     export function stepperTurnDual_42(stepper: Stepper, direction1: Dir, trun1: number, direction2: Dir, trun2: number): void {
         if ((trun1 == 0) && (trun2 == 0)) {
             return;
@@ -557,7 +572,7 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
         }
 
     }
-
+*/
     /**
 	 * Stop the dc motor.
     */
