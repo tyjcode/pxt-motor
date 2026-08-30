@@ -228,24 +228,38 @@ namespace motor {
 	}
 /*
 
+CW / Slow Decay PWM
+
 PCA9685 count
-0                            3616       4095
-|-----------------------------|------------|
-|       3616 counts           | 480 counts|
-|        88.3 %               |   11.7 %  |
+
+0                              3614        4095
+|--------------------------------|------------|
+|          3614 counts           | 482 counts |
+|            88.23%              |   11.77%   |
 
 
-pp  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-    ←────────── constantly H ──────────────→
+HR8833 INPUT
 
+pp  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+    <--------------- constant H -------------->
 
-pn  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHLLLLLLLL
-    ←── Slow Decay / Current Hold ─→← Drive →
+pn  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHLLLLLLLLLL
+    <--------- Slow Decay ---------><- Drive ->
 
-                  H/H                 H/L
-                   ↓                   ↓
-             Slow Decay           Motor Drive
-          Current recirculation
+    H/H                               H/L
+     │                                 │
+     ▼                                 ▼
+Brake / Slow Decay                Forward Drive
+/ Current recirculation
+
+HR8833 OUTPUT
+
+    L/L                               H/L
+     │                                 │
+     ▼                                 ▼
+Motor winding                    VM applied
+shorted via                      across motor
+low-side MOSFETs
 
 
 Motor Current
