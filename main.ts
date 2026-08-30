@@ -269,73 +269,94 @@ namespace motor {
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2
     //% direction.fieldEditor="gridpicker" direction.fieldOptions.columns=2
 	export function MotorRun(index: Motors, direction: Dir, speed: number): void {
-    if (!initialized) {
-        initPCA9685()
-    }
+	    if (!initialized) {
+	        initPCA9685()
+	    }
+	
+	    if (index < 1 || index > 4) {
+	        return
+	    }
+	
+	    // Limit input to -255 ... +255
+	    if (speed > 255) {
+	        speed = 255
+	    } else if (speed < -255) {
+	        speed = -255
+	    }
+	
+	    // NON:
+	    //   positive speed -> CW
+	    //   negative speed -> CCW
+	    //
+	    // CW / CCW:
+	    //   preserve original 0 ... 255 behavior
+	    let actualDir = direction
+	
+	    if (direction == Dir.NON) {
+	        if (speed < 0) {
+	            actualDir = Dir.CCW
+	            speed = -speed
+	        } else {
+	            actualDir = Dir.CW
+	        }
+	    } else {
+	        // CW / CCW do not accept negative speed
+	        if (speed < 0) {
+	            speed = 0
+	        }
+	    }
+	
+	    let pn = (4 - index) * 2
+	    let pp = pn + 1
+	
+	    // Stop
+	    if (speed == 0) {
+	        setPwm(pp, 0, 4096)
+	        setPwm(pn, 0, 4096)
+	        return
+	    }
+	
+	    // Map 0...255 exactly to 0...4095
+	    let pwm = Math.round(speed * 4095 / 255)
+	
+	    // Slow Decay : Current Hold period
+	    let holdPwm = 4096 - pwm
+	
+	    if (direction == Dir.CW) {
+	        // H/H : Current Hold
+	        // H/L : Drive
+	        setPwm(pp, 4096, 0)
+	        setPwm(pn, 0, holdPwm)
+	    } else {
+	        // H/H : Current Hold
+	        // L/H : Drive
+	        setPwm(pp, 0, holdPwm)
+	        setPwm(pn, 4096, 0)
+	    }
+	}
+/*
 
-    if (index < 1 || index > 4) {
-        return
-    }
+PCA9685 count
+0                            3614       4095
+|-----------------------------|------------|
 
-    // Limit input to -255 ... +255
-    if (speed > 255) {
-        speed = 255
-    } else if (speed < -255) {
-        speed = -255
-    }
+pp  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+    ←──────── constantly H ───────────────→
 
-    // NON:
-    //   positive speed -> CW
-    //   negative speed -> CCW
-    //
-    // CW / CCW:
-    //   preserve original 0 ... 255 behavior
-    let actualDir = direction
+pn  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHLLLLLLLLL
+    ← Current Hold 3614 →← Drive 482 →
 
-    if (direction == Dir.NON) {
-        if (speed < 0) {
-            actualDir = Dir.CCW
-            speed = -speed
-        } else {
-            actualDir = Dir.CW
-        }
-    } else {
-        // CW / CCW do not accept negative speed
-        if (speed < 0) {
-            speed = 0
-        }
-    }
+     H/H                     H/L
+      ↓                       ↓
+ Current Hold             Motor Drive
 
-    let pn = (4 - index) * 2
-    let pp = pn + 1
 
-    // Stop
-    if (speed == 0) {
-        setPwm(pp, 0, 4096)
-        setPwm(pn, 0, 4096)
-        return
-    }
+Current
+  /￣￣\___/￣￣\___/￣￣\___
 
-    // Map 0...255 exactly to 0...4095
-    let pwm = Math.round(speed * 4095 / 255)
-
-    // Slow Decay
-    let brakePwm = 4096 - pwm
-
-    if (actualDir == Dir.CW) {
-        // Forward
-        // H-L : Drive
-        // H-H : Brake (Slow Decay)
-        setPwm(pp, 4096, 0)
-        setPwm(pn, 0, brakePwm)
-    } else {
-        // Reverse
-        // L-H : Drive
-        // H-H : Brake (Slow Decay)
-        setPwm(pp, 0, brakePwm)
-        setPwm(pn, 4096, 0)
-    }
-}
+  
+*/
+	
 /*
     export function MotorRun(index: Motors, direction: Dir, speed: number): void {
         if (!initialized) {
