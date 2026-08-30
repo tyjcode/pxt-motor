@@ -1,6 +1,7 @@
 {
     "motor.Dir.CW|block": "正转",
     "motor.Dir.CCW|block": "反转",
+    "motor.Dir.NON|block": "NON",
     "motor.servo|block": "舵机|%index|角度|%degree",
     "motor.MotorRun|block": "电机|%index|方向|%Dir|速度|%speed",
     "motor.stepperDegree_42|block": "步进 42|%index|方向|%direction|角度|%degree",
