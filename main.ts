@@ -100,10 +100,12 @@ namespace motor {
      * The user defines the motor rotation direction.
      */
     export enum Dir {
-        //% blockId="CW" block="CW"
+        //% blockId="CW" block="CW" block="NON"
         CW = 1,
-        //% blockId="CCW" block="CCW"
+        //% blockId="CCW" block="CCW" block="NON"
         CCW = -1,
+        //% blockId="CCW" block="CCW" block="NON"
+        NON = 0,
     }
 
     /**
@@ -271,8 +273,12 @@ namespace motor {
 	    }
 	
 	    // speed: 0 ～ 255
-	    if (speed < 0) {
-	        speed = 0
+	    if (speed < -255) {
+			if (direction == Dir.NON) {
+	        	speed = -255
+			} else {
+	        	speed = 0
+			}
 	    }
 	    if (speed > 255) {
 	        speed = 255
@@ -286,7 +292,12 @@ namespace motor {
 	    let pp = (4 - index) * 2 + 1
 	
 	    // 0～255 → 0～4080
-	    let pwm = speed * 16
+		if (speed >= 0) {
+		    let pwm = speed * 16
+		} else {
+			 //for NON
+		    let pwm = speed * -16
+		}
 	
 	    // speed = 0 は完全停止
 	    if (speed == 0) {
@@ -313,7 +324,7 @@ namespace motor {
 	        setPwm(pp, 4096, 0)       // Full ON
 	        setPwm(pn, 0, brakePwm)
 	
-	    } else {
+	    } else if(direction == Dir.CCW) {
 	
 	        // Reverse Slow Decay
 	        //
@@ -326,7 +337,17 @@ namespace motor {
 	
 	        setPwm(pp, 0, brakePwm)
 	        setPwm(pn, 4096, 0)       // Full ON
-	    }
+			
+	    } else {	//for NON
+			
+			if (speed >= 0) {
+		        setPwm(pp, 4096, 0)       // Full ON
+		        setPwm(pn, 0, brakePwm)
+			} else {
+		        setPwm(pp, 0, brakePwm)
+		        setPwm(pn, 4096, 0)       // Full ON
+			}
+		}
 	}
 	/*
     export function MotorRun2(index: Motors, direction: Dir, speed: number): void {
