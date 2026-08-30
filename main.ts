@@ -252,6 +252,9 @@ Current
     //% blockId=motor_motorStop block="Motor stop|%index"
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2 
     export function motorStop(index: Motors) {
+		if (!initialized) {
+	        initPCA9685()
+	    }
 	    if (index < 1 || index > 4) {
 	        return
 	    }
@@ -265,6 +268,9 @@ Current
     //% weight=10
     //% blockId=motor_motorStopAll block="Motor Stop All"
     export function motorStopAll(): void {
+		if (!initialized) {
+	        initPCA9685()
+	    }
         for (let idx = 1; idx <= 4; idx++) {
             motorStop(idx);
         }
