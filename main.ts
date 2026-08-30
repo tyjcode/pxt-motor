@@ -322,7 +322,7 @@ namespace motor {
 	    // Slow Decay : Current Hold period
 	    let holdPwm = 4096 - pwm
 	
-	    if (direction == Dir.CW) {
+	    if (actualDir == Dir.CW) {
 	        // H/H : Current Hold
 	        // H/L : Drive
 	        setPwm(pp, 4096, 0)
