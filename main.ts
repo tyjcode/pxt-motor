@@ -93,7 +93,8 @@ namespace motor {
         M1 = 0x1,
         M2 = 0x2,
         M3 = 0x3,
-        M4 = 0x4
+        M4 = 0x4,
+		INI = 0x0
     }
 
     /**
@@ -267,89 +268,75 @@ namespace motor {
     //% speed.min=0 speed.max=255
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2
     //% direction.fieldEditor="gridpicker" direction.fieldOptions.columns=2
-	export function MotorRun(index: Motors, direction: Dir, speed: number): void {
-	    if (!initialized) {
-	        initPCA9685()
-	    }
-	
-	    // speed: 0 ～ 255
-	    if (speed < -255) {
-			if (direction == Dir.NON) {
-	        	speed = -255
-			} else {
-	        	speed = 0
-			}
-	    }
-	    if (speed > 255) {
-	        speed = 255
-	    }
-	
-	    if (index > 4 || index <= 0) {
-	        return
-	    }
-	
-	    let pn = (4 - index) * 2
-	    let pp = (4 - index) * 2 + 1
-	
-	    // 0～255 → 0～4080
-		if (speed >= 0) {
-		    let pwm = speed * 16
-		} else {
-			 //for NON
-		    let pwm = speed * -16
-		}
-	
-	    // speed = 0 は完全停止
-	    if (speed == 0) {
-	        setPwm(pp, 0, 4096)
-	        setPwm(pn, 0, 4096)
-	        return
-	    }
-	
-	    // Slow Decayでは
-	    // OFF期間を H-H（Brake）にするためPWMを反転する
-	    let brakePwm = 4096 - pwm
-	
-	    if (direction == Dir.CW) {
-	
-	        // Forward Slow Decay
-	        //
-	        // pp = HIGH固定
-	        // pn = PWM
-	        //
-	        // pp  pn
-	        // H   L  → Forward
-	        // H   H  → Brake (Slow Decay)
-	
-	        setPwm(pp, 4096, 0)       // Full ON
-	        setPwm(pn, 0, brakePwm)
-	
-	    } else if(direction == Dir.CCW) {
-	
-	        // Reverse Slow Decay
-	        //
-	        // pp = PWM
-	        // pn = HIGH固定
-	        //
-	        // pp  pn
-	        // L   H  → Reverse
-	        // H   H  → Brake (Slow Decay)
-	
-	        setPwm(pp, 0, brakePwm)
-	        setPwm(pn, 4096, 0)       // Full ON
-			
-	    } else {	//for NON
-			
-			if (speed >= 0) {
-		        setPwm(pp, 4096, 0)       // Full ON
-		        setPwm(pn, 0, brakePwm)
-			} else {
-		        setPwm(pp, 0, brakePwm)
-		        setPwm(pn, 4096, 0)       // Full ON
-			}
-		}
-	}
-	/*
+export function MotorRun(index: Motors, direction: Dir, speed: number): void {
+    if (!initialized) {
+        initPCA9685()
+    }
+
+    if (index < 1 || index > 4) {
+        return
+    }
+
+    // Limit input to -255 ... +255
+    if (speed > 255) {
+        speed = 255
+    } else if (speed < -255) {
+        speed = -255
+    }
+
+    // NON:
+    //   positive speed -> CW
+    //   negative speed -> CCW
+    //
+    // CW / CCW:
+    //   preserve original 0 ... 255 behavior
+    let actualDir = direction
+
+    if (direction == Dir.NON) {
+        if (speed < 0) {
+            actualDir = Dir.CCW
+            speed = -speed
+        } else {
+            actualDir = Dir.CW
+        }
+    } else {
+        // CW / CCW do not accept negative speed
+        if (speed < 0) {
+            speed = 0
+        }
+    }
+
+    let pn = (4 - index) * 2
+    let pp = pn + 1
+
+    // Stop
+    if (speed == 0) {
+        setPwm(pp, 0, 4096)
+        setPwm(pn, 0, 4096)
+        return
+    }
+
+    // Map 0...255 exactly to 0...4095
+    let pwm = Math.round(speed * 4095 / 255)
+
+    // Slow Decay
+    let brakePwm = 4096 - pwm
+
+    if (actualDir == Dir.CW) {
+        // Forward
+        // H-L : Drive
+        // H-H : Brake (Slow Decay)
+        setPwm(pp, 4096, 0)
+        setPwm(pn, 0, brakePwm)
+    } else {
+        // Reverse
+        // L-H : Drive
+        // H-H : Brake (Slow Decay)
+        setPwm(pp, 0, brakePwm)
+        setPwm(pn, 4096, 0)
+    }
+}
+/*
     export function MotorRun(index: Motors, direction: Dir, speed: number): void {
         if (!initialized) {
             initPCA9685()
