@@ -85,15 +85,6 @@ namespace motor {
         NONE = 0,
     }
 
-    /**
-     * The user can select a two-path stepper motor controller.
-     */
-    export enum Steppers {
-        M1_M2 = 0x1,
-        M3_M4 = 0x2
-    }
-
-
 
     let initialized = false
 
