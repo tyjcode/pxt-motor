@@ -268,7 +268,7 @@ namespace motor {
     //% speed.min=0 speed.max=255
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2
     //% direction.fieldEditor="gridpicker" direction.fieldOptions.columns=2
-export function MotorRun(index: Motors, direction: Dir, speed: number): void {
+	export function MotorRun(index: Motors, direction: Dir, speed: number): void {
     if (!initialized) {
         initPCA9685()
     }
@@ -588,6 +588,9 @@ export function MotorRun(index: Motors, direction: Dir, speed: number): void {
     //% blockId=motor_motorStop block="Motor stop|%index"
     //% index.fieldEditor="gridpicker" index.fieldOptions.columns=2 
     export function motorStop(index: Motors) {
+	    if (index < 1 || index > 4) {
+	        return
+	    }
         setPwm((4 - index) * 2, 0, 0);
         setPwm((4 - index) * 2 + 1, 0, 0);
     }
