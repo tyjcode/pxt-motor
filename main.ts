@@ -350,7 +350,7 @@ namespace motor {
 		}
 	}
 	/*
-    export function MotorRun2(index: Motors, direction: Dir, speed: number): void {
+    export function MotorRun(index: Motors, direction: Dir, speed: number): void {
         if (!initialized) {
             initPCA9685()
         }
