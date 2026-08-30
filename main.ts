@@ -226,23 +226,44 @@ namespace motor {
 /*
 
 PCA9685 count
-0                            3614       4095
+0                            3616       4095
 |-----------------------------|------------|
+|       3616 counts           | 480 counts|
+|        88.3 %               |   11.7 %  |
+
 
 pp  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-    ←──────── constantly H ───────────────→
-
-pn  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHLLLLLLLLL
-    ← Current Hold 3614 →← Drive 482 →
-
-     H/H                     H/L
-      ↓                       ↓
- Current Hold             Motor Drive
+    ←────────── constantly H ──────────────→
 
 
-Current
-    /￣￣\___/￣￣\___/￣￣\___
-0V ───────────────────────────
+pn  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHLLLLLLLL
+    ←── Slow Decay / Current Hold ─→← Drive →
+
+                  H/H                 H/L
+                   ↓                   ↓
+             Slow Decay           Motor Drive
+          Current recirculation
+
+
+Motor Current
+
+         Slow Decay       Drive   Slow Decay       Drive
+       ←──────────────→←────→←──────────────→←────→
+
+Imax   ●                    ●                    ●
+        ＼                 ／ ＼                 ／
+         ＼               ／   ＼               ／
+          ＼             ／     ＼             ／
+           ＼           ／       ＼           ／
+            ＼_________●         ＼_________●
+                     Imin                 Imin
+
+      current decays ↑       current decays ↑
+          slowly     │           slowly     │
+                     │                      │
+                 current rises          current rises
+
+0A  ───────────────────────────────────────────────
   
 */
     /**
