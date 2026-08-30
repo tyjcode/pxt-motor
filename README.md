@@ -7,6 +7,7 @@ Micro:bit motor drive expansion board.
 
 * [URL](#url)
 * [Summary](#summary)
+* [Changes in This Fork](#'Changes')
 * [Blocks](#blocks)
 * [License](#license)
 
@@ -18,7 +19,7 @@ Micro: bit motor driven expansion board is not only expanded the motor drive, in
 The motor adopts the interface mode of large current, and the steering machine, I2C and IO port all use Gravity standard interface to support a large number of modules and sensors.
 The expansion board USES 3.5v ~ 5.5v power supply, 3.5mm plug and wiring two power interface modes.It has the characteristics of wide range of voltage adaption, large number of ports, compact size, plug and play, convenience and so on.
 
-## Changes in This Fork
+## Changes in this Fork
 
 This fork modifies the DC motor control for the DFRobot Micro:bit Driver Expansion Board.
 
