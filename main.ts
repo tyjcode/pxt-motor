@@ -12,8 +12,13 @@
  * @version  V1.0.1
  * @date  2018-03-20
  *
+ */
+
+/*
+ *Additions and Modifications
  * Slow Decay & 500Hz
  * date  2026-08-30
+ *
  */
 
 /**
