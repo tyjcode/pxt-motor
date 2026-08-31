@@ -12,7 +12,8 @@ Micro:bit motor drive expansion board.
 * [License](#license)
 
 ## URL
-project URL:  ```https://github.com/tyjcode/pxt-motor```  origin ```https://github.com/DFRobot/pxt-motor```
+project URL:  ```https://github.com/tyjcode/pxt-motor```  
+Original ```https://github.com/DFRobot/pxt-motor```
 
 ## Summary
 Micro: bit motor driven expansion board is not only expanded the motor drive, in the integration of this extended board four motor driven, 2 road, on the basis of stepper motor driver, also raises the additional 8 road steering gear interface, IO port, 2 road 9 I2C interface.
@@ -24,6 +25,10 @@ The expansion board USES 3.5v ~ 5.5v power supply, 3.5mm plug and wiring two pow
 This fork modifies the DC motor control for the DFRobot Micro:bit Driver Expansion Board.
 
 ### Changes
+This project is a modified version of DFRobot/pxt-motor.
+
+Original:
+https://github.com/DFRobot/pxt-motor
 
 - Changed the HR8833 motor drive method from **Fast Decay** to **Slow Decay**.
 - Tested higher PCA9685 PWM frequencies for smoother low-speed motor control.
@@ -38,14 +43,15 @@ Tested PWM frequencies:
 - 50 Hz: Good low-speed torque, but noticeable jerky motion.
 - 100 Hz: Improved low-speed stability.
 - 500 Hz: Stable and smooth operation from low speed.
+- 800 Hz: Stable and smooth operation from low speed.
 - 1000 Hz: Stable low-speed operation, but PWM noise was more noticeable.
 
-For line-following robots, **500 Hz Slow Decay** is currently the recommended setting.
+For line-following robots, **800 Hz Slow Decay** is currently the recommended setting.
 
 Example:
 
 **typescript**
-setFreq(500);
+setFreq(800);
 
 
 ## Blocks
